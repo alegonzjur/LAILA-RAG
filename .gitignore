@@ -1,0 +1,27 @@
+# Entorno virtual
+venv/
+env/
+*.venv
+
+# Chroma DB persistida (se regenera con ingest.py)
+chroma_db/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Variables de entorno / secretos
+.env
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
