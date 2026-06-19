@@ -13,7 +13,18 @@ PDF_PATH = DATA_DIR / "TFM_LAILA.pdf"
 CHROMA_DIR = BASE_DIR / "chroma_db"
 
 # --- Modelos Ollama ---
+# Modelo para la RAG chain simple (rag_chain.py): un solo paso de generación
+# tras el retrieval, no requiere tool-calling. 3B es suficiente y más rápido.
 LLM_MODEL = "llama3.2:3b"
+
+# Modelo para el agente (agent.py): el tool-calling multi-paso (decidir qué
+# tool llamar, encadenar varias llamadas, interpretar resultados) exige más
+# capacidad de razonamiento. Con llama3.2:3b el agente perdía el hilo tras
+# una tool call (alucinaba una pregunta nueva en vez de responder) o
+# generaba tool calls mal formadas (mezclaba argumentos de dos tools
+# distintas). Ver IMPROVEMENTS.md para el diagnóstico completo.
+AGENT_MODEL = "llama3.1:8b"
+
 EMBEDDING_MODEL = "nomic-embed-text"
 
 # --- Chunking ---
