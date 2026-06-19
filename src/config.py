@@ -27,4 +27,7 @@ CHUNK_OVERLAP = 100
 COLLECTION_NAME = "laila_tfm"
 
 # --- Retrieval ---
-RETRIEVER_K = 4  # nº de chunks a recuperar por consulta 
+# Subido de 4 a 8 tras diagnosticar con inspect_store.py que el chunk correcto
+# para algunas preguntas (ej. hardware usado) caía en posición 7-8 del ranking
+# por similitud, fuera del top-4 inicial. Ver IMPROVEMENTS.md para el detalle.
+RETRIEVER_K = 8
