@@ -70,24 +70,30 @@ def main():
     vectorstore = load_vectorstore()
 
     print("=" * 70)
-    print("1. Búsqueda literal de 'RTX 3060'")
+    print("Diagnóstico: preguntas exactas generadas por el agente")
+    print("(al intentar descomponer 'cuántas canciones rock+pop+rap')")
     print("=" * 70)
-    find_chunks_containing(vectorstore, "RTX 3060")
 
-    print("=" * 70)
-    print("2. Búsqueda literal de 'GPT-2' + 'medium'")
-    print("=" * 70)
-    find_chunks_containing(vectorstore, "medium")
+    preguntas_agente = [
+        "¿Cuántas canciones hay en el conjunto de rock?",
+        "¿Cuántas canciones había de pop?",
+        "¿Cuántas canciones había de rap?",
+    ]
 
-    print("=" * 70)
-    print("3. Similarity search real para la pregunta de la GPU (k=8)")
-    print("=" * 70)
-    test_similarity_search(vectorstore, "¿Qué tarjeta gráfica se usó para entrenar los modelos?", k=8)
+    for pregunta in preguntas_agente:
+        test_similarity_search(vectorstore, pregunta, k=10)
 
+    print("\n" + "=" * 70)
+    print("Comparación: pregunta más cercana al texto literal del TFM")
     print("=" * 70)
-    print("4. Similarity search real para la pregunta del modelo NLP (k=8)")
-    print("=" * 70)
-    test_similarity_search(vectorstore, "¿Qué modelo de generación de texto se utilizó y por qué?", k=8)
+    # El texto real del TFM dice: "Cada dataset tenía el siguiente número
+    # de canciones: Rock: 633308 canciones, Pop: 1393559 canciones,
+    # Rap: 964605 canciones." Probamos formulaciones más próximas a esa frase.
+    test_similarity_search(
+        vectorstore,
+        "número de canciones por género rock pop rap dataset",
+        k=10,
+    )
 
 
 if __name__ == "__main__":

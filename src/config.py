@@ -42,3 +42,12 @@ COLLECTION_NAME = "laila_tfm"
 # para algunas preguntas (ej. hardware usado) caía en posición 7-8 del ranking
 # por similitud, fuera del top-4 inicial. Ver IMPROVEMENTS.md para el detalle.
 RETRIEVER_K = 8
+
+# HyDE (Hypothetical Document Embeddings): en vez de hacer embedding de la
+# pregunta directamente, se usa el LLM para generar primero una "respuesta
+# hipotética" de cómo podría estar expresada esa información en el documento,
+# y luego se hace embedding de esa respuesta hipotética para buscar en el
+# vector store. Mejora el recall cuando hay mismatch de vocabulario entre
+# la pregunta y el documento (ej. pregunta informal vs. texto técnico con
+# cifras). Ver IMPROVEMENTS.md y rag_chain.py para el detalle de implementación.
+USE_HYDE = False  # Cambiar a True para activar HyDE

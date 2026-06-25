@@ -218,4 +218,57 @@ problema de recall ni el de no-secuencialidad.
   puramente verbales del formato esperado, para minimizar el riesgo de
   fuga de ejemplos en cualquier escenario futuro.
 
-## 4. (Espacio para próximas entradas)
+## 4. HyDE (Hypothetical Document Embeddings): resultados del experimento
+
+**Estado:** Implementado como modo alternativo activable (`config.USE_HYDE`).
+Resultados mixtos — útil para algunos casos, perjudicial para otros.
+Valor por defecto: `USE_HYDE = False`.
+
+**Motivación:**
+El diagnóstico con `inspect_store.py` mostró que las preguntas del agente
+sobre cifras de canciones por género (ej. "¿Cuántas canciones había de pop?")
+no encontraban el chunk correcto ni en el top-10 del ranking por similitud.
+La causa era un mismatch de vocabulario: el TFM dice "Pop: 1393559 canciones"
+en un contexto técnico, mientras que la pregunta usa lenguaje informal e
+interrogativo. HyDE se implementó para atacar específicamente este problema.
+
+**Cómo funciona en este proyecto:**
+`build_hyde_retriever()` en `rag_chain.py` encadena:
+1. `HYDE_PROMPT_TEMPLATE` → LLM genera una "respuesta hipotética" en el
+   estilo y vocabulario que usaría el TFM para responder la pregunta.
+2. El embedding de esa respuesta hipotética (no de la pregunta original)
+   se usa como query para buscar en Chroma.
+
+**Resultados medidos (comparación directa con 3 preguntas de prueba):**
+
+| Pregunta | Sin HyDE | Con HyDE | Veredicto |
+|---|---|---|---|
+| ¿Qué modelo de generación de texto se usó? | ❌ No encontró GPT-2 medium | ❌❌ Peor: LLM generó "CNN para música", retriever fue a chunks de audio | HyDE perjudicó |
+| ¿Cuántas canciones tenía el dataset de pop? | ⚠️ Daba 1.254.203 (train, no total) | ✅ Dio 1.393.559 (correcto, total tras filtrar) | HyDE mejoró |
+| ¿Qué tarjeta gráfica se usó? | ✅ RTX 3060 (correcto, directo) | ⚠️ Encontró el chunk correcto (pos. 1 vs pos. 8) pero respuesta degradada por interferencia de "RTX 3080" de la hipótesis | HyDE ambiguo |
+
+**Análisis de cuándo HyDE ayuda y cuándo no:**
+
+- ✅ Ayuda cuando: el mismatch entre estilo pregunta/documento es el problema
+  principal, Y el LLM tiene suficiente conocimiento del dominio para generar
+  una hipótesis plausible (caso pop: sabía que hablaría de "conjunto de datos",
+  "filtrado", "canciones" aunque inventara la cifra concreta).
+- ❌ Perjudica cuando: el LLM no tiene suficiente conocimiento del dominio
+  y genera una hipótesis que lleva al retriever en dirección equivocada
+  (caso CNN: el LLM no sabía que el TFM usa GPT-2 para texto, e inventó
+  "CNN para música", redirigiendo el retriever a chunks de generación de audio).
+- ⚠️ Ambiguo cuando: la hipótesis mejora el recall (encuentra el chunk
+  correcto antes) pero la hipótesis incorrecta contamina la fase de
+  generación (caso RTX 3080: el LLM en la fase de generación dudó entre
+  la cifra del chunk real y la de la hipótesis que él mismo generó).
+
+**Conclusión:**
+HyDE no es una mejora universal — es una técnica con trade-offs reales.
+En este proyecto, el valor por defecto se mantiene en `USE_HYDE = False`
+porque los casos donde perjudica (modelo NLP, GPU) son preguntas de mayor
+relevancia para el dominio del TFM que el caso donde mejora (cifra exacta
+de canciones de pop). Para mejorar HyDE en este contexto habría que
+usar un LLM con más conocimiento del dominio (ej. fine-tuneado sobre el
+propio TFM) para generar hipótesis más fiables.
+
+## 5. (Espacio para próximas entradas)
